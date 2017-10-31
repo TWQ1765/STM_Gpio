@@ -38,9 +38,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
+#include <stdio.h>
 #include "Gpio.h"
 #include "Rcc.h"
-
+#include "Rng.h"
 /* USER CODE BEGIN Includes */
 #define greenLedPin		13
 #define redLedPin		14
@@ -60,7 +61,7 @@ static void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+ extern void initialise_monitor_handles(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -71,7 +72,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	int i = 0;
+	initialise_monitor_handles();
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -94,6 +96,8 @@ int main(void)
   MX_GPIO_Init();
 
   /* USER CODE BEGIN 2 */
+  printf("Hello, world!\n");
+  enableRng();
   enableGpioA();
   enableGpioG();
 
@@ -106,6 +110,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  int num = getRandomNumber();
+	  printf("(%d) 0x%x\n", i++ ,num);
+
+/*blueButton
 	  volatile int blueButtonState;
 
 
@@ -126,8 +135,21 @@ int main(void)
 		  gpioWrite(GpioG, greenLedPin,0);
 		  HAL_Delay(200);
 	  }
-  /* USER CODE END WHILE */
 
+*/
+/*LOCK
+	  gpioWrite(GpioG, redLedPin,0);
+	  gpioWrite(GpioG,greenLedPin,1);
+	  HAL_Delay(200);
+	  gpioWrite(GpioG, redLedPin,1);
+	  HAL_Delay(200);
+	  gpioLock(GpioG,greenLedPin);
+	  gpioConfig(GpioG, greenLedPin, GPIO_MODE_IN, GPIO_PUSH_PULL, GPIO_NO_PULL, GPIO_LOW_SPEED);
+
+*/
+  /* USER CODE END WHILE */
+	  //blink the amber LED at rate of once in a second
+	  //HAL_GPIO_TogglePin(amberLed_GPIO_Port, amberLed_Pin);
   /* USER CODE BEGIN 3 */
 
   }

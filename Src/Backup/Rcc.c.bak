@@ -11,6 +11,7 @@ uint32_t *rccAhb1Rst = (uint32_t*)(RCC_BASE_ADDR + RCC_AHB1RST_OFF);
 uint32_t *rccAhb1En = (uint32_t*)(RCC_BASE_ADDR + RCC_AHB1EN_OFF);
 
 void enableGpioG(void){
+// Unreset GPIOG
 	*rccAhb1Rst &= ~(1 << 6);
 	*rccAhb1En |= 1 << 6;
 }
@@ -21,13 +22,6 @@ void enableGpioA(void){
 }
 
 void enableGpioB(void){
-	*rccAhb1Rst &= ~(1 << 1);
-	*rccAhb1En |= (1 << 6);
-}
-
-void enableRng(void)
-{
-	Rcc->RCC_AHB2RSTR &= ~(1<<6);
-	Rcc->RCC_AHB2ENR |= 1 << 6;
-
+	*rccAhb1Rst &= ~(1 << 6);
+	*rccAhb1En |= 1 << 6;
 }

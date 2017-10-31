@@ -31,23 +31,10 @@ void gpioConfig(GpioReg *gpio,int pin, int mode, int outDriveType, int pullType,
 void gpioWrite(GpioReg *gpio,int pin, int state){
 
 	if(state == 1){
-		SET_PIN(gpio,pin);
-		//gpio->outData |= 1 << pin;
+		gpio->outData |= 1 << pin;
 	}else{
-		RESET_PIN(gpio,pin);
-		//gpio->outData &= ~(1 << pin);
+		gpio->outData &= ~(1 << pin);
 	}
-
-}
-
-
-void gpioLock(GpioReg *gpio, int pin)
-{
-	int lockStatus;
-	gpio->lock = (1<<16) | (1<<pin);
-	gpio->lock = (0<<16) | (1<<pin);
-	gpio->lock = (1<<16) | (1<<pin);
-	lockStatus = gpio->lock;
 
 }
 
