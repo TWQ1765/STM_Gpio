@@ -38,16 +38,18 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include <stdio.h>
-#include "Gpio.h"
-#include "Rcc.h"
-#include "Rng.h"
 /* USER CODE BEGIN Includes */
 #define greenLedPin		13
 #define redLedPin		14
 #define blueButtonPin 	0
 /* USER CODE END Includes */
-
+#include <stdio.h>
+#include "Gpio.h"
+#include "Rcc.h"
+#include "Rng.h"
+#include "Nvic.h"
+#include "SysTick.h"
+#include "ExternalIrq.h"
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
@@ -63,7 +65,7 @@ static void MX_GPIO_Init(void);
 /* Private function prototypes -----------------------------------------------*/
  extern void initialise_monitor_handles(void);
 /* USER CODE END PFP */
-
+int pressCounter;
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -72,7 +74,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	int i = 0;
+	//int i = 0;
 	initialise_monitor_handles();
   /* USER CODE END 1 */
 
@@ -97,22 +99,78 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   printf("Hello, world!\n");
-  enableRng();
+
+
+  /*
+   * enable I2C interrupt
+   */
+ // nvicEnableIrq(31);
+  //nvicSetPriority(31,8);
+  //disable Irq
+ // nvicDisableIrq(31);
+  /*
+   * enable RNG& HASH interrupt
+   */
+ // nvicEnableIrq(80);
+ // nvicSetPriority(80,4);
+
   enableGpioA();
   enableGpioG();
+  enableRng();
 
+
+
+  //nvicEnableIrq(80);
+ // nvicSetPriority(80,4);
+ // getRandomNumberByInterrupt();
   gpioConfig(GpioA, blueButtonPin,GPIO_MODE_IN, 0 , GPIO_NO_PULL,0 );
   gpioConfig(GpioG,redLedPin, GPIO_MODE_OUT,GPIO_PUSH_PULL, GPIO_NO_PULL, GPIO_HI_SPEED);
   gpioConfig(GpioG,greenLedPin, GPIO_MODE_OUT,GPIO_PUSH_PULL, GPIO_NO_PULL, GPIO_LOW_SPEED);
+
+  /*
+   * Configure GPIO pin 8 as MCO1 (Push-pull whit no-pull and very)
+   * high speed output
+   */
+  gpioConfig(GpioA, 8 ,GPIO_MODE_AF,GPIO_PUSH_PULL, GPIO_NO_PULL , GPIO_VHI_SPEED);
+  gpioConfigAltFuncNum(GpioA, 8, AF8);
+  rccSelectMco1Src(MCO_HSE_SRC);
+  rccSetMco1Prescaler(MCO_DIV_BY_4);
+
+
+  //sysTickIntrDisable();
+  //sysTickIntrEnable();
+  //sysTickSetReload(11250000); //22.5MHz for 500ms
+  //sysTickPresceldSpeed();
+ // sysTickClrCounter();
+  //sysTickEnable();
+  sysTickDisable();
+
+  //Enable External interrupt 0 (EXIT0) and set the interrupt priority to 9
+  nvicEnableIrq(6);
+  nvicSetPriority(6,4);
+  //enable GPIOA pin 0 (connected to user blue button)
+  EXTI_IMR_enable(blueButtonPin);
+  EXTI_RTSR_set_RisingTrigger(blueButtonPin);
+ // EXTI_RTSR_reset_RisingTrigger(blueButtonPin);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  //volatile uint32_t flag = 1;
+	 // int i = 0;
+	 // int num = getRandomNumber();
+	 // printf("(%d) 0x%x\n", i++ ,num);
 
-	  int num = getRandomNumber();
-	  printf("(%d) 0x%x\n", i++ ,num);
+/*
+	  gpioWrite(GpioG, redLedPin,1);
+	  while(!sysTickHasExpired());
+	  gpioWrite(GpioG, redLedPin,0);
+	  while(!sysTickHasExpired());
+*/
 
 /*blueButton
 	  volatile int blueButtonState;
@@ -147,6 +205,17 @@ int main(void)
 	  gpioConfig(GpioG, greenLedPin, GPIO_MODE_IN, GPIO_PUSH_PULL, GPIO_NO_PULL, GPIO_LOW_SPEED);
 
 */
+
+	  //for EXTI
+	  gpioWrite(GpioG, redLedPin,1);
+	 // HAL_Delay(10);
+	  __WFI();//wait for interrupt
+
+	  gpioWrite(GpioG, redLedPin,0);
+	  gpioWrite(GpioG, greenLedPin,0);
+
+
+
   /* USER CODE END WHILE */
 	  //blink the amber LED at rate of once in a second
 	  //HAL_GPIO_TogglePin(amberLed_GPIO_Port, amberLed_Pin);
@@ -155,8 +224,8 @@ int main(void)
   }
   /* USER CODE END 3 */
 
-}
 
+}
 /** System Clock Configuration
 */
 void SystemClock_Config(void)
@@ -237,6 +306,27 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+
+void EXTI0_IRQHandler(void){
+gpioWrite(GpioG, greenLedPin, 1);
+pressCounter++;
+EXTI_PR_PendingClear(blueButtonPin);
+
+}
+
+void My_SysTick_Handler(void){/////////////////////////////////////////////////////////////////
+	static int ledState = 0;
+	//Reading the CTRL register to clear the COUNTFLAG
+	volatile int flag = TICK->CTRL;
+	  gpioWrite(GpioG, redLedPin,(ledState= !  ledState));
+
+
+}
+
+void HASH_RNG_IRQHandler(void){ /////////////////////////////////////////////////////////////
+	volatile int rand = Rng->DR;
+
+}
 /* USER CODE END 4 */
 
 /**

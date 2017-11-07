@@ -49,9 +49,14 @@ int isFaultyRandomSequence(void){
  */
 int getRandomNumber(void){
 	do{
-	generateRandomNmber();
-			while(!isRandomNumberAvailable());
+		generateRandomNmber();
+		while(!isRandomNumberAvailable());
 	}while (isRandomNumberAvailable());
-			return Rng->DR;
+	return Rng->DR;
+
+}
+
+void getRandomNumberByInterrupt(void){
+	Rng->CR |= RNG_RNGEN | RNG_IE;
 
 }

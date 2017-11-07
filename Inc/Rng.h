@@ -28,7 +28,7 @@ struct RngReg{
 
 //control reg
 #define RNG_RNGEN (1<<2)
-
+#define RNG_IE 	(1<<3)
 
 
 void generateRandomNmber(void);
@@ -37,6 +37,7 @@ int isAnyError(void);
 int isFaultyRandomSequence(void);
 int getRandomNumber(void);
 
+void getRandomNumberByInterrupt(void);
 
 
 #endif /* RNG_H_ */

@@ -26,6 +26,12 @@ void gpioConfig(GpioReg *gpio,int pin, int mode, int outDriveType, int pullType,
 
 }
 
+void gpioConfigAltFuncNum(GpioReg *gpio, int pin,int AF){
+	if(pin<7)
+		gpio->altFuncLo = AF << (pin*4);
+	else
+		gpio->altFuncHi = AF << (pin*4);
+}
 
 
 void gpioWrite(GpioReg *gpio,int pin, int state){

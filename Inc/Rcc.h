@@ -53,14 +53,63 @@ struct RccReg{
 
 
 
-//Export
-extern uint32_t *rccAhb1Rst;
-extern uint32_t *rccAhb1En;
 
-void enableGpioG(void);
-void enableGpioA(void);
-void enableGpioB(void);
-void enableRng(void);
+/*
+ * configure the MCOx to be driven by the clock 'src' and the
+ * frequency divided by 'div'.
+ * WARNING: the MCOx pin is NOT configured here. The user need
+ * 			to separately configure it in order for the pin to
+ * 			output the clock signal.
+ *
+ * Input:
+ * 	mco		is  MCO1
+ * 				MCO2
+ *
+ * 	src		is	MCO_HSI_SRC
+ * 				MCO_LSE_SRC
+ * 				MCO_HSE_SRC
+ * 				MCO_PLL_SRC
+ *
+ * 	div		is	MCO_NO_DIV
+ * 				MCO_DIV_BY_2
+ * 				MCO_DIV_BY_3
+ * 				MCO_DIV_BY_2
+ * 				MCO_DIV_BY_5
+ */
+/////////////////////////////////////////////
+#define MCO_HSI_SRC	0
+#define MCO_LSE_SRC	1
+#define MCO_HSE_SRC	2
+#define MCO_PLL_SRC	3
+
+//PreScaler
+#define MCO_NO_DIV		0
+#define MCO_DIV_BY_2	4
+#define MCO_DIV_BY_3	5
+#define MCO_DIV_BY_4	6
+#define MCO_DIV_BY_5	7
+
+
+#define rccSelectMco1Src(x)				\
+	do{\
+		Rcc->RCC_CFGR &=~(3<<21);	\
+		Rcc->RCC_CFGR |=((x)<<21);	\
+		}while(0)
+
+#define rccSetMco1Prescaler(x)			\
+	do{\
+		Rcc->RCC_CFGR &=~(7<<24);	\
+		Rcc->RCC_CFGR |=((x)<<24);	\
+		}while(0)
+
+	//Export variables to other modules
+	extern uint32_t *rccAhb1Rst;
+	extern uint32_t *rccAhb1En;
+
+	void enableGpioG(void);
+	void enableGpioA(void);
+	void enableGpioB(void);
+	void enableRng(void);
 
 
 #endif /* RCC_H_ */
